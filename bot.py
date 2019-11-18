@@ -39,7 +39,7 @@ class WatchBot(commands.Bot):
                 await session.close()
             if data[0]['versions'][4]['version'] != self.stable_version:
                 self.stable_version = data[0]['versions'][4]['version']
-                embed = discord.Embed(title='Stable update available!', color=discord.Colour.blue())
+                embed = discord.Embed(title='Stable update available!', color=discord.Colour.green())
                 embed.add_field(name='New version: ', value=self.stable_version, inline=False)
                 await channel.send(embed=embed)
             if data[0]['versions'][3]['version'] != self.beta_version:
@@ -54,7 +54,7 @@ class WatchBot(commands.Bot):
                 await channel.send(embed=embed)
             if data[0]['versions'][1]['version'] != self.canary_version:
                 self.dev_version = data[0]['versions'][1]['version']
-                embed = discord.Embed(title='Dev update available!', color=discord.Colour.red())
+                embed = discord.Embed(title='Canary update available!', color=discord.Colour.purple())
                 embed.add_field(name='New version: ', value=self.canary_version, inline=False)
                 await channel.send(embed=embed)
             await asyncio.sleep(3600)
