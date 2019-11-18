@@ -10,17 +10,19 @@ class WatchBot(commands.Bot):
         self.stable_version = '0'
         self.beta_version = '0'
         self.dev_version = '0'
+        self.canary_version = '0'
         super().__init__(command_prefix='o_')
 
     async def on_ready(self):
         print('Logged in')
         async with aiohttp.ClientSession() as session:
-            async with session.get('https://omahaproxy.appspot.com/all.json?os=linux') as resp:
+            async with session.get('https://omahaproxy.appspot.com/all.json?os=win') as resp:
                 data = await resp.json()
             await session.close()
-        self.stable_version = data[0]['versions'][2]['version']
-        self.beta_version = data[0]['versions'][1]['version']
-        self.dev_version = data[0]['versions'][0]['version']
+        self.stable_version = data[0]['versions'][4]['version']
+        self.beta_version = data[0]['versions'][3]['version']
+        self.dev_version = data[0]['versions'][2]['version']
+        self.canary_version = data[0]['versions'][1]['version']
         self.loop.create_task(self.fetch_omaha())
 
     async def on_message(self, message):
@@ -32,25 +34,29 @@ class WatchBot(commands.Bot):
         channel = self.get_channel(645121830268698634)
         while not self.is_closed():
             async with aiohttp.ClientSession() as session:
-                async with session.get('https://omahaproxy.appspot.com/all.json?os=linux') as resp:
+                async with session.get('https://omahaproxy.appspot.com/all.json?os=win') as resp:
                     data = await resp.json()
                 await session.close()
-            if data[0]['versions'][2]['version'] != self.stable_version:
-                self.stable_version = data[0]['versions'][2]['version']
+            if data[0]['versions'][4]['version'] != self.stable_version:
+                self.stable_version = data[0]['versions'][4]['version']
                 embed = discord.Embed(title='Stable update available!', color=discord.Colour.blue())
                 embed.add_field(name='New version: ', value=self.stable_version, inline=False)
                 await channel.send(embed=embed)
-            if data[0]['versions'][1]['version'] != self.beta_version:
-                self.beta_version = data[0]['versions'][1]['version']
+            if data[0]['versions'][3]['version'] != self.beta_version:
+                self.beta_version = data[0]['versions'][3]['version']
                 embed = discord.Embed(title='Beta update available!', color=discord.Colour.yellow())
                 embed.add_field(name='New version: ', value=self.beta_version, inline=False)
                 await channel.send(embed=embed)
-            if data[0]['versions'][0]['version'] != self.dev_version:
-                self.dev_version = data[0]['versions'][0]['version']
+            if data[0]['versions'][2]['version'] != self.dev_version:
+                self.dev_version = data[0]['versions'][2]['version']
                 embed = discord.Embed(title='Dev update available!', color=discord.Colour.red())
                 embed.add_field(name='New version: ', value=self.dev_version, inline=False)
                 await channel.send(embed=embed)
-            print('This loop is definitely working')
+            if data[0]['versions'][1]['version'] != self.canary_version:
+                self.dev_version = data[0]['versions'][1]['version']
+                embed = discord.Embed(title='Dev update available!', color=discord.Colour.red())
+                embed.add_field(name='New version: ', value=self.canary_version, inline=False)
+                await channel.send(embed=embed)
             await asyncio.sleep(3600)
 
 client = WatchBot()
