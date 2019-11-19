@@ -1,4 +1,5 @@
 import discord
+from discord import Webhook, AsyncWebhookAdapter
 from discord.ext import commands
 import json
 import aiohttp
@@ -31,7 +32,6 @@ class WatchBot(commands.Bot):
 
     async def fetch_omaha(self):
         # This function runs every hour.
-        channel = self.get_channel(645121830268698634)
         while not self.is_closed():
             async with aiohttp.ClientSession() as session:
                 async with session.get('https://omahaproxy.appspot.com/all.json?os=win') as resp:
@@ -41,23 +41,30 @@ class WatchBot(commands.Bot):
                 self.stable_version = data[0]['versions'][4]['version']
                 embed = discord.Embed(title='Stable update available!', color=discord.Colour.green())
                 embed.add_field(name='New version: ', value=self.stable_version, inline=False)
-                await channel.send(embed=embed)
+                await self.sendEmbed(embed, title='Chromium Stable Channel')
             if data[0]['versions'][3]['version'] != self.beta_version:
                 self.beta_version = data[0]['versions'][3]['version']
                 embed = discord.Embed(title='Beta update available!', color=discord.Colour.yellow())
                 embed.add_field(name='New version: ', value=self.beta_version, inline=False)
-                await channel.send(embed=embed)
+                await self.sendEmbed(embed, title='Chromium Beta Channel')
             if data[0]['versions'][2]['version'] != self.dev_version:
                 self.dev_version = data[0]['versions'][2]['version']
                 embed = discord.Embed(title='Dev update available!', color=discord.Colour.red())
                 embed.add_field(name='New version: ', value=self.dev_version, inline=False)
-                await channel.send(embed=embed)
+                await self.sendEmbed(embed, title='Chromium Dev Channel')
             if data[0]['versions'][1]['version'] != self.canary_version:
                 self.dev_version = data[0]['versions'][1]['version']
                 embed = discord.Embed(title='Canary update available!', color=discord.Colour.purple())
                 embed.add_field(name='New version: ', value=self.canary_version, inline=False)
-                await channel.send(embed=embed)
-            await asyncio.sleep(3600)
+                await self.sendEmbed(embed, title='Chromium Canary Channel')
+            await asyncio.sleep(1800)
+
+    async def sendEmbed(self, embed, title=None):
+        async with aiohttp.ClientSession() as session:
+            webhook = Webhook.from_url('url-here', adapter=AsyncWebhookAdapter(session))
+            await webhook.send(embed=embed, username=title)
+            await session.close()
+
 
 client = WatchBot()
 client.run('token')
