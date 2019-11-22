@@ -53,7 +53,7 @@ class WatchBot(commands.Bot):
                 embed.add_field(name='New version: ', value=self.dev_version, inline=False)
                 await self.sendEmbed(embed, title='Chromium Dev Channel')
             if data[0]['versions'][1]['version'] != self.canary_version:
-                self.dev_version = data[0]['versions'][1]['version']
+                self.canary_version = data[0]['versions'][1]['version']
                 embed = discord.Embed(title='Canary update available!', color=discord.Colour.purple())
                 embed.add_field(name='New version: ', value=self.canary_version, inline=False)
                 await self.sendEmbed(embed, title='Chromium Canary Channel')
