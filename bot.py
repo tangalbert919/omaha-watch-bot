@@ -44,7 +44,7 @@ class WatchBot(commands.Bot):
                 await self.sendEmbed(embed, title='Chromium Stable Channel')
             if data[0]['versions'][3]['version'] != self.beta_version:
                 self.beta_version = data[0]['versions'][3]['version']
-                embed = discord.Embed(title='Beta update available!', color=discord.Colour.yellow())
+                embed = discord.Embed(title='Beta update available!', color=discord.Colour.gold())
                 embed.add_field(name='New version: ', value=self.beta_version, inline=False)
                 await self.sendEmbed(embed, title='Chromium Beta Channel')
             if data[0]['versions'][2]['version'] != self.dev_version:
