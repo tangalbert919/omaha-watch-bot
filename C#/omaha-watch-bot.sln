@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30309.148
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "omaha-watch-bot", "omaha-watch-bot.csproj", "{B531F12C-2691-4832-BAFE-4FD839D3FCAA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B531F12C-2691-4832-BAFE-4FD839D3FCAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B531F12C-2691-4832-BAFE-4FD839D3FCAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B531F12C-2691-4832-BAFE-4FD839D3FCAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B531F12C-2691-4832-BAFE-4FD839D3FCAA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B7424804-FBB3-4727-9443-09CA843B0461}
+	EndGlobalSection
+EndGlobal
