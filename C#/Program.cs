@@ -28,10 +28,8 @@ namespace omaha_watch_bot
         private async Task FetchOmaha()
         {
             WebClient client = new WebClient();
-            EmbedBuilder embed = new EmbedBuilder();
 
             // This task will loop indefinitely.
-            // TODO: Complete this loop.
             while (true)
             {
                 StreamReader reader = new StreamReader(client.OpenRead("https://omahaproxy.appspot.com/all.json?os=win"));
@@ -41,6 +39,8 @@ namespace omaha_watch_bot
 
                 DataSet dataSet = JsonConvert.DeserializeObject<DataSet>(content);
                 DataTable dataTable = dataSet.Tables["versions"];
+
+                EmbedBuilder embed = new EmbedBuilder();
 
                 foreach (DataRow row in dataTable.Rows)
                 {
@@ -54,6 +54,7 @@ namespace omaha_watch_bot
                             {
                                 embed.Title = "Canary update available!";
                                 embed.AddField("New version: ", row["version"].ToString(), false).WithColor(Color.DarkPurple);
+                                await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
                             }
                         }
                     }
@@ -66,6 +67,7 @@ namespace omaha_watch_bot
                             {
                                 embed.Title = "Dev update available!";
                                 embed.AddField("New version: ", row["version"].ToString(), false).WithColor(Color.Red);
+                                await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
                             }
                         }
                     }
@@ -78,6 +80,7 @@ namespace omaha_watch_bot
                             {
                                 embed.Title = "Beta update available!";
                                 embed.AddField("New version: ", row["version"].ToString(), false).WithColor(Color.Gold);
+                                await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
                             }
                         }
                     }
@@ -90,12 +93,12 @@ namespace omaha_watch_bot
                             {
                                 embed.Title = "Stable update available!";
                                 embed.AddField("New version: ", row["version"].ToString(), false).WithColor(Color.Green);
+                                await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
                             }
                         }
                     }
                 }
-                
-                await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
+
                 await Task.Delay(1800000);
             }
            
