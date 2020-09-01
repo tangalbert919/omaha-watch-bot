@@ -12,7 +12,7 @@ namespace omaha_watch_bot
 {
     class Program
     {
-        private string stableVersion, betaVersion, devVersion, canaryVersion = "0";
+        private string stableVersion, betaVersion, devVersion, canaryVersion;
         private DiscordWebhookClient mainClient;
         public static void Main(string[] args)
                 => new Program().MainAsync().GetAwaiter().GetResult();
@@ -28,6 +28,7 @@ namespace omaha_watch_bot
         private async Task FetchOmaha()
         {
             WebClient client = new WebClient();
+            stableVersion = betaVersion = devVersion = canaryVersion = "0";
 
             // This task will loop indefinitely.
             while (true)
