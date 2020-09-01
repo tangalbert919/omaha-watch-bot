@@ -6,9 +6,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Data;
-using System.Collections.Generic;
 
 namespace omaha_watch_bot
 {
@@ -23,11 +21,11 @@ namespace omaha_watch_bot
         {
             mainClient = new DiscordWebhookClient("link here");
 
-            await fetchOmaha();
+            await FetchOmaha();
             await Task.Delay(Timeout.Infinite);
         }
 
-        private async Task fetchOmaha()
+        private async Task FetchOmaha()
         {
             WebClient client = new WebClient();
             EmbedBuilder embed = new EmbedBuilder();
@@ -38,17 +36,67 @@ namespace omaha_watch_bot
             {
                 StreamReader reader = new StreamReader(client.OpenRead("https://omahaproxy.appspot.com/all.json?os=win"));
                 string content = reader.ReadToEnd();
+                content = "{" + content[15..^1];
                 Console.WriteLine(content);
 
-                JsonTextReader jsonTextReader = new JsonTextReader(reader);
+                DataSet dataSet = JsonConvert.DeserializeObject<DataSet>(content);
+                DataTable dataTable = dataSet.Tables["versions"];
 
-                JObject o1 = (JObject)JToken.ReadFrom(jsonTextReader);
-                stableVersion = o1.Children().ToString();
-                Console.WriteLine(stableVersion);
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    Console.WriteLine(row["channel"] + " - " + row["version"]);
+                    if (row["channel"].Equals("canary"))
+                    {
+                        if (canaryVersion.Equals("0")) canaryVersion = row["version"].ToString();
+                        else
+                        {
+                            if (!canaryVersion.Equals(row["version"].ToString()))
+                            {
+                                embed.Title = "Canary update available!";
+                                embed.AddField("New version: ", row["version"].ToString(), false).WithColor(Color.DarkPurple);
+                            }
+                        }
+                    }
+                    else if (row["channel"].Equals("dev"))
+                    {
+                        if (devVersion.Equals("0")) devVersion = row["version"].ToString();
+                        else
+                        {
+                            if (!devVersion.Equals(row["version"].ToString()))
+                            {
+                                embed.Title = "Dev update available!";
+                                embed.AddField("New version: ", row["version"].ToString(), false).WithColor(Color.Red);
+                            }
+                        }
+                    }
+                    else if (row["channel"].Equals("beta"))
+                    {
+                        if (betaVersion.Equals("0")) betaVersion = row["version"].ToString();
+                        else
+                        {
+                            if (!betaVersion.Equals(row["version"].ToString()))
+                            {
+                                embed.Title = "Beta update available!";
+                                embed.AddField("New version: ", row["version"].ToString(), false).WithColor(Color.Gold);
+                            }
+                        }
+                    }
+                    else if (row["channel"].Equals("stable"))
+                    {
+                        if (stableVersion.Equals("0")) stableVersion = row["version"].ToString();
+                        else
+                        {
+                            if (!stableVersion.Equals(row["version"].ToString()))
+                            {
+                                embed.Title = "Stable update available!";
+                                embed.AddField("New version: ", row["version"].ToString(), false).WithColor(Color.Green);
+                            }
+                        }
+                    }
+                }
                 
-                embed.Title = "Test embed";
-                //await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
-                await Task.Delay(5000);
+                await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
+                await Task.Delay(1800000);
             }
            
         }
