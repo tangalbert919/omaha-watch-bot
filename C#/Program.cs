@@ -5,8 +5,11 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
+//using Newtonsoft.Json;
 using System.Data;
+using System.Net.Http;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace omaha_watch_bot
 {
@@ -28,83 +31,72 @@ namespace omaha_watch_bot
 
         private async Task FetchOmaha()
         {
-            WebClient client = new WebClient();
+            HttpClient http = new();
             stableVersion = betaVersion = devVersion = canaryVersion = "0";
 
             // This task will loop indefinitely.
             while (true)
             {
-                StreamReader reader = new StreamReader(client.OpenRead("https://omahaproxy.appspot.com/all.json?os=win"));
+                using HttpResponseMessage message = await http.GetAsync("https://versionhistory.googleapis.com/v1/chrome/platforms/win/channels/all/versions/all/releases?filter=endtime=none&order_by=fraction%20desc");
+                message.EnsureSuccessStatusCode();
+                Stream responseBody = await message.Content.ReadAsStreamAsync();
+                StreamReader reader = new StreamReader(responseBody);
                 string content = reader.ReadToEnd();
-                content = "{" + content[15..^1];
-                //Console.WriteLine(content);
 
-                DataSet dataSet = JsonConvert.DeserializeObject<DataSet>(content);
-                DataTable dataTable = dataSet.Tables["versions"];
-
+                JsonNode releaseNode = JsonNode.Parse(content);
+                JsonArray releases = releaseNode["releases"].AsArray();
+                //Console.WriteLine(releases[0]);
                 EmbedBuilder embed = new EmbedBuilder();
 
-                foreach (DataRow row in dataTable.Rows)
+                foreach (JsonNode release in releases)
                 {
-                    //Console.WriteLine(row["channel"] + " - " + row["version"]);
-                    if (row["channel"].Equals("canary"))
+                    //Console.WriteLine(release.ToString());
+                    Console.WriteLine(release["version"]);
+                    if (release["name"].ToString().Contains("/canary/"))
                     {
-                        if (canaryVersion.Equals("0")) canaryVersion = row["version"].ToString();
-                        else
+                        if (canaryVersion.Equals("0")) canaryVersion = release["version"].ToString();
+                        else if (!canaryVersion.Equals(release["version"].ToString()))
                         {
-                            if (!canaryVersion.Equals(row["version"].ToString()))
-                            {
-                                embed.Title = "Canary update available!";
-                                embed.AddField("New version: ", row["version"].ToString(), false).WithColor(Color.DarkPurple);
-                                await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
-                                canaryVersion = row["version"].ToString();
-                            }
+                            embed.Title = "Canary update available!";
+                            embed.AddField("New version: ", release["version"].ToString(), false).WithColor(Color.DarkPurple);
+                            await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
+                            canaryVersion = release["version"].ToString();
                         }
                     }
-                    else if (row["channel"].Equals("dev"))
+                    else if (release["name"].ToString().Contains("dev"))
                     {
-                        if (devVersion.Equals("0")) devVersion = row["version"].ToString();
-                        else
+                        if (devVersion.Equals("0")) devVersion = release["version"].ToString();
+                        else if (!devVersion.Equals(release["version"].ToString()))
                         {
-                            if (!devVersion.Equals(row["version"].ToString()))
-                            {
-                                embed.Title = "Dev update available!";
-                                embed.AddField("New version: ", row["version"].ToString(), false).WithColor(Color.Red);
-                                await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
-                                devVersion = row["version"].ToString();
-                            }
+                            embed.Title = "Dev update available!";
+                            embed.AddField("New version: ", release["version"].ToString(), false).WithColor(Color.Red);
+                            await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
+                            devVersion = release["version"].ToString();
                         }
                     }
-                    else if (row["channel"].Equals("beta"))
+                    else if (release["name"].ToString().Contains("beta"))
                     {
-                        if (betaVersion.Equals("0")) betaVersion = row["version"].ToString();
-                        else
+                        if (betaVersion.Equals("0")) betaVersion = release["version"].ToString();
+                        else if (!betaVersion.Equals(release["version"].ToString()))
                         {
-                            if (!betaVersion.Equals(row["version"].ToString()))
-                            {
-                                embed.Title = "Beta update available!";
-                                embed.AddField("New version: ", row["version"].ToString(), false).WithColor(Color.Gold);
-                                await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
-                                betaVersion = row["version"].ToString();
-                            }
+                            embed.Title = "Beta update available!";
+                            embed.AddField("New version: ", release["version"].ToString(), false).WithColor(Color.Gold);
+                            await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
+                            betaVersion = release["version"].ToString();
                         }
                     }
-                    else if (row["channel"].Equals("stable"))
+                    else if (release["name"].ToString().Contains("stable"))
                     {
-                        if (stableVersion.Equals("0")) stableVersion = row["version"].ToString();
-                        else
+                        if (stableVersion.Equals("0")) stableVersion = release["version"].ToString();
+                        else if (!stableVersion.Equals(release["version"].ToString()))
                         {
-                            if (!stableVersion.Equals(row["version"].ToString()))
-                            {
-                                embed.Title = "Stable update available!";
-                                embed.AddField("New version: ", row["version"].ToString(), false).WithColor(Color.Green);
-                                await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
-                                stableVersion = row["version"].ToString();
-                            }
+                            embed.Title = "Stable update available!";
+                            embed.AddField("New version: ", release["version"].ToString(), false).WithColor(Color.Green);
+                            await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
+                            stableVersion = release["version"].ToString();
                         }
                     }
                 }
-
                 await Task.Delay(1800000);
             }
            
