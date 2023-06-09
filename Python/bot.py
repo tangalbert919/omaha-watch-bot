@@ -1,5 +1,5 @@
 import discord
-from discord import Webhook, AsyncWebhookAdapter
+from discord import Webhook, Intents
 from discord.ext import commands
 import json
 import aiohttp
@@ -12,7 +12,7 @@ class WatchBot(commands.Bot):
         self.beta_version = '0'
         self.dev_version = '0'
         self.canary_version = '0'
-        super().__init__(command_prefix='o_')
+        super().__init__(command_prefix='o_', intents=Intents.default())
 
     async def on_ready(self):
         print('Logged in')
