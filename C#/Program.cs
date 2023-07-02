@@ -2,13 +2,9 @@
 using Discord.Webhook;
 using System;
 using System.IO;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-//using Newtonsoft.Json;
-using System.Data;
 using System.Net.Http;
-using System.Text.Json;
 using System.Text.Json.Nodes;
 
 namespace omaha_watch_bot
@@ -33,6 +29,9 @@ namespace omaha_watch_bot
         {
             HttpClient http = new();
             stableVersion = betaVersion = devVersion = canaryVersion = "0";
+            // Exists for debugging reasons.
+            canaryVersion = "114.0.5175.0";
+            await Task.Delay(1000);
 
             // This task will loop indefinitely.
             while (true)
@@ -40,19 +39,18 @@ namespace omaha_watch_bot
                 using HttpResponseMessage message = await http.GetAsync("https://versionhistory.googleapis.com/v1/chrome/platforms/win/channels/all/versions/all/releases?filter=endtime=none&order_by=fraction%20desc");
                 message.EnsureSuccessStatusCode();
                 Stream responseBody = await message.Content.ReadAsStreamAsync();
-                StreamReader reader = new StreamReader(responseBody);
+                StreamReader reader = new(responseBody);
                 string content = reader.ReadToEnd();
 
                 JsonNode releaseNode = JsonNode.Parse(content);
                 JsonArray releases = releaseNode["releases"].AsArray();
                 //Console.WriteLine(releases[0]);
-                EmbedBuilder embed = new EmbedBuilder();
+                EmbedBuilder embed = new();
 
                 foreach (JsonNode release in releases)
                 {
-                    //Console.WriteLine(release.ToString());
-                    Console.WriteLine(release["version"]);
-                    if (release["name"].ToString().Contains("/canary/"))
+                    //Console.WriteLine(release["version"]);
+                    if (release["name"].ToString().Contains("/canary/")) // Avoid canary_asan, separate channel
                     {
                         if (canaryVersion.Equals("0")) canaryVersion = release["version"].ToString();
                         else if (!canaryVersion.Equals(release["version"].ToString()))
