@@ -4,6 +4,12 @@ from discord.ext import commands
 import json
 import aiohttp
 import asyncio
+import argparse
+from . import utils
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--enable-android-ota', action='store_true', help='Enables Android OTA detection. You must have "android.json" populated with build fingerprints first.')
+args = parser.parse_args()
 
 class WatchBot(commands.Bot):
 
@@ -12,6 +18,8 @@ class WatchBot(commands.Bot):
         self.beta_version = '0'
         self.dev_version = '0'
         self.canary_version = '0'
+        if args.enable_android_ota:
+            self.fingerprint_list = json.loads(open('android.json', 'r').read())
         super().__init__(command_prefix='o_', intents=Intents.default())
 
     async def on_ready(self):
@@ -25,6 +33,8 @@ class WatchBot(commands.Bot):
         self.dev_version = data['releases'][2]['version']
         self.canary_version = data['releases'][3]['version']
         self.loop.create_task(self.fetch_omaha())
+        if args.enable_android_ota:
+            self.loop.create_task(self.fetch_android())
 
     async def on_message(self, message):
         if message.author == self.user:
@@ -58,6 +68,15 @@ class WatchBot(commands.Bot):
                 embed.add_field(name='New version: ', value=self.canary_version, inline=False)
                 await self.sendEmbed(embed, title='Chromium Canary Channel')
             await asyncio.sleep(1800)
+
+    async def fetch_android(self):
+        # This function runs every two hours.
+        while not self.is_closed():
+            for fingerprint in fingerprint_list:
+                payload = utils.construct_payload(fingerprint.split('/'))
+                # TODO: Implement
+                await asyncio.sleep(5)
+            await asyncio.sleep(3600)
 
     async def sendEmbed(self, embed, title=None):
         async with aiohttp.ClientSession() as session:
