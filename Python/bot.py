@@ -1,11 +1,13 @@
 import discord
 from discord import Webhook, Intents
 from discord.ext import commands
+from checkin import checkin_generator_pb2
 import json
 import aiohttp
 import asyncio
 import argparse
-from . import utils
+import gzip
+import utils
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--enable-android-ota', action='store_true', help='Enables Android OTA detection. You must have "android.json" populated with build fingerprints first.')
@@ -22,6 +24,7 @@ class WatchBot(commands.Bot):
         self.canary_version = '0'
         if args.enable_android_ota:
             self.fingerprint_list = json.loads(open('android.json', 'r').read())
+            self.response = checkin_generator_pb2.AndroidCheckinResponse()
         super().__init__(command_prefix='o_', intents=Intents.default())
 
     async def on_ready(self):
@@ -74,11 +77,34 @@ class WatchBot(commands.Bot):
     async def fetch_android(self):
         # This function runs every two hours.
         while not self.is_closed():
-            for fingerprint in fingerprint_list:
-                payload = utils.construct_payload(fingerprint.split('/'))
+            for fingerprint in self.fingerprint_list:
+                found = False
+                download_url = ""
+                (payload, headers) = utils.construct_payload(fingerprint)
                 # TODO: Implement
+                with gzip.open('android_data.gz', 'wb') as f:
+                    f.write(payload)
+                    f.close()
+                post_data = open('android_data.gz', 'rb')
+                async with aiohttp.ClientSession() as session:
+                    async with session.post('https://android.googleapis.com/checkin', data=post_data, headers=headers) as resp:
+                        # todo: implement
+                        data = await resp.text()
+                        self.response.ParseFromString(data)
+                        print(await resp.text())
+                        for entry in self.response.setting:
+                            if b'https://android.googleapis.com' in entry.value:
+                                print("OTA URL obtained: " + entry.value.decode())
+                                found = True
+                                download_url = entry.value.decode()
+                                break
+                post_data.close()
+                if found:
+                    #embed = discord.Embed(title='New package available!', color=discord.Colour.blue())
+                    #embed.add_field()
+                    print("New data found")
                 await asyncio.sleep(5)
-            await asyncio.sleep(3600)
+            await asyncio.sleep(30)
 
     async def sendEmbed(self, embed, title=None):
         async with aiohttp.ClientSession() as session:
