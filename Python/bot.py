@@ -9,6 +9,8 @@ from . import utils
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--enable-android-ota', action='store_true', help='Enables Android OTA detection. You must have "android.json" populated with build fingerprints first.')
+parser.add_argument('--token', required=True, help='Run the Discord bot with this token. Required.')
+parser.add_argument('--webhook-url', required=True, help='Send messages to this webhook URL. Required.')
 args = parser.parse_args()
 
 class WatchBot(commands.Bot):
@@ -80,10 +82,10 @@ class WatchBot(commands.Bot):
 
     async def sendEmbed(self, embed, title=None):
         async with aiohttp.ClientSession() as session:
-            webhook = Webhook.from_url('url-here', adapter=AsyncWebhookAdapter(session))
+            webhook = Webhook.from_url(args.webhook_url, adapter=AsyncWebhookAdapter(session))
             await webhook.send(embed=embed, username=title)
             await session.close()
 
 
 client = WatchBot()
-client.run('token')
+client.run(args.token)
