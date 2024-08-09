@@ -37,6 +37,12 @@ class WatchBot(commands.Bot):
         self.beta_version = data['releases'][1]['version']
         self.dev_version = data['releases'][2]['version']
         self.canary_version = data['releases'][3]['version']
+        embed = discord.Embed(title='Omaha Bot Started!', color=discord.Colour.blue())
+        embed.add_field(name='Canary version: ', value=self.canary_version, inline=True)
+        embed.add_field(name='Dev version: ', value=self.dev_version, inline=True)
+        embed.add_field(name='Beta version: ', value=self.beta_version, inline=True)
+        embed.add_field(name='Stable version: ', value=self.stable_version, inline=True)
+        await self.sendEmbed(embed)
         self.loop.create_task(self.fetch_omaha())
         if args.enable_android_ota:
             self.loop.create_task(self.fetch_android())
