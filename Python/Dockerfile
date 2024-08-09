@@ -7,7 +7,9 @@
  ADD requirements.txt /src
  ADD android.json /src
  ADD utils.py /src
+ RUN mkdir -p /src/checkin
  ADD checkin/checkin_generator_pb2.py /src/checkin
+ ADD checkin/__init__.py /src/checkin
  RUN python -m pip install -r requirements.txt
 
  VOLUME [ "/src" ]
