@@ -108,7 +108,7 @@ class WatchBot(commands.Bot):
 
     async def sendEmbed(self, embed, title=None):
         async with aiohttp.ClientSession() as session:
-            webhook = Webhook.from_url(args.webhook_url, adapter=AsyncWebhookAdapter(session))
+            webhook = Webhook.from_url(args.webhook_url, session=session)
             await webhook.send(embed=embed, username=title)
             await session.close()
 
