@@ -22,6 +22,7 @@ class WatchBot(commands.Bot):
         self.beta_version = '0'
         self.dev_version = '0'
         self.canary_version = '0'
+        self.fetch_url = 'https://versionhistory.googleapis.com/v1/chrome/platforms/win/channels/all/versions/all/releases?filter=endtime=none,fraction=1,channel%3C=canary'
         if args.enable_android_ota:
             self.fingerprint_list = json.loads(open('android.json', 'r').read())
             self.response = checkin_generator_pb2.AndroidCheckinResponse()
@@ -30,7 +31,7 @@ class WatchBot(commands.Bot):
     async def on_ready(self):
         print('Logged in')
         async with aiohttp.ClientSession() as session:
-            async with session.get('https://versionhistory.googleapis.com/v1/chrome/platforms/win/channels/all/versions/all/releases?filter=endtime=none&order_by=fraction%20desc') as resp:
+            async with session.get(self.fetch_url) as resp:
                 data = await resp.json()
             await session.close()
         self.stable_version = data['releases'][1]['version']
@@ -55,7 +56,7 @@ class WatchBot(commands.Bot):
         # This function runs every hour.
         while not self.is_closed():
             async with aiohttp.ClientSession() as session:
-                async with session.get('https://versionhistory.googleapis.com/v1/chrome/platforms/win/channels/all/versions/all/releases?filter=endtime=none&order_by=fraction%20desc') as resp:
+                async with session.get(self.fetch_url) as resp:
                     data = await resp.json()
                 await session.close()
             if data['releases'][1]['version'] != self.stable_version:
