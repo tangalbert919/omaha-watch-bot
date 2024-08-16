@@ -35,9 +35,9 @@ class WatchBot(commands.Bot):
                 data = await resp.json()
             await session.close()
         self.stable_version = data['releases'][1]['version']
-        self.beta_version = data['releases'][3]['version']
-        self.dev_version = data['releases'][4]['version']
-        self.canary_version = data['releases'][5]['version']
+        self.beta_version = data['releases'][2]['version']
+        self.dev_version = data['releases'][3]['version']
+        self.canary_version = data['releases'][4]['version']
         embed = discord.Embed(title='Omaha Bot Started!', color=discord.Colour.blue())
         embed.add_field(name='Canary version: ', value=self.canary_version, inline=True)
         embed.add_field(name='Dev version: ', value=self.dev_version, inline=True)
@@ -64,18 +64,18 @@ class WatchBot(commands.Bot):
                 embed = discord.Embed(title='Stable update available!', color=discord.Colour.green())
                 embed.add_field(name='New version: ', value=self.stable_version, inline=False)
                 await self.sendEmbed(embed, title='Chromium Stable Channel')
-            if data['releases'][3]['version'] != self.beta_version:
-                self.beta_version = data['releases'][3]['version']
+            if data['releases'][2]['version'] != self.beta_version:
+                self.beta_version = data['releases'][2]['version']
                 embed = discord.Embed(title='Beta update available!', color=discord.Colour.gold())
                 embed.add_field(name='New version: ', value=self.beta_version, inline=False)
                 await self.sendEmbed(embed, title='Chromium Beta Channel')
-            if data['releases'][4]['version'] != self.dev_version:
-                self.dev_version = data['releases'][4]['version']
+            if data['releases'][3]['version'] != self.dev_version:
+                self.dev_version = data['releases'][3]['version']
                 embed = discord.Embed(title='Dev update available!', color=discord.Colour.red())
                 embed.add_field(name='New version: ', value=self.dev_version, inline=False)
                 await self.sendEmbed(embed, title='Chromium Dev Channel')
-            if data['releases'][5]['version'] != self.canary_version:
-                self.canary_version = data['releases'][5]['version']
+            if data['releases'][4]['version'] != self.canary_version:
+                self.canary_version = data['releases'][4]['version']
                 embed = discord.Embed(title='Canary update available!', color=discord.Colour.purple())
                 embed.add_field(name='New version: ', value=self.canary_version, inline=False)
                 await self.sendEmbed(embed, title='Chromium Canary Channel')
