@@ -36,7 +36,7 @@ namespace omaha_watch_bot
             // This task will loop indefinitely.
             while (true)
             {
-                using HttpResponseMessage message = await http.GetAsync("https://versionhistory.googleapis.com/v1/chrome/platforms/win/channels/all/versions/all/releases?filter=endtime=none&order_by=fraction%20desc");
+                using HttpResponseMessage message = await http.GetAsync("https://versionhistory.googleapis.com/v1/chrome/platforms/win/channels/all/versions/all/releases?filter=endtime=none,fraction=1,channel%3C=canary");
                 message.EnsureSuccessStatusCode();
                 Stream responseBody = await message.Content.ReadAsStreamAsync();
                 StreamReader reader = new(responseBody);
@@ -50,14 +50,14 @@ namespace omaha_watch_bot
                 foreach (JsonNode release in releases)
                 {
                     //Console.WriteLine(release["version"]);
-                    if (release["name"].ToString().Contains("/canary/")) // Avoid canary_asan, separate channel
+                    if (release["name"].ToString().Contains("canary")) // Avoid canary_asan, separate channel
                     {
                         if (canaryVersion.Equals("0")) canaryVersion = release["version"].ToString();
                         else if (!canaryVersion.Equals(release["version"].ToString()))
                         {
                             embed.Title = "Canary update available!";
                             embed.AddField("New version: ", release["version"].ToString(), false).WithColor(Color.DarkPurple);
-                            await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
+                            await mainClient.SendMessageAsync(embeds: [embed.Build()]);
                             canaryVersion = release["version"].ToString();
                         }
                     }
@@ -68,7 +68,7 @@ namespace omaha_watch_bot
                         {
                             embed.Title = "Dev update available!";
                             embed.AddField("New version: ", release["version"].ToString(), false).WithColor(Color.Red);
-                            await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
+                            await mainClient.SendMessageAsync(embeds: [embed.Build()]);
                             devVersion = release["version"].ToString();
                         }
                     }
@@ -79,7 +79,7 @@ namespace omaha_watch_bot
                         {
                             embed.Title = "Beta update available!";
                             embed.AddField("New version: ", release["version"].ToString(), false).WithColor(Color.Gold);
-                            await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
+                            await mainClient.SendMessageAsync(embeds: [embed.Build()]);
                             betaVersion = release["version"].ToString();
                         }
                     }
@@ -90,7 +90,7 @@ namespace omaha_watch_bot
                         {
                             embed.Title = "Stable update available!";
                             embed.AddField("New version: ", release["version"].ToString(), false).WithColor(Color.Green);
-                            await mainClient.SendMessageAsync(embeds: new[] { embed.Build() });
+                            await mainClient.SendMessageAsync(embeds: [embed.Build()]);
                             stableVersion = release["version"].ToString();
                         }
                     }
