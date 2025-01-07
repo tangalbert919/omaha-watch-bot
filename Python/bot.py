@@ -60,31 +60,34 @@ class WatchBot(commands.Bot):
     async def fetch_omaha(self):
         # This function runs every hour.
         while not self.is_closed():
-            async with aiohttp.ClientSession() as session:
-                async with session.get(self.fetch_url) as resp:
-                    data = await resp.json()
-                await session.close()
-            for entry in data['releases']:
-                if 'stable' in entry['name'] and entry['version'] != self.stable_version:
-                    self.stable_version = entry['version']
-                    embed = discord.Embed(title='Stable update available!', color=discord.Colour.green())
-                    embed.add_field(name='New version: ', value=self.stable_version, inline=False)
-                    await self.sendEmbed(embed, title='Chromium Stable Channel')
-                if 'beta' in entry['name'] and entry['version'] != self.beta_version:
-                    self.beta_version = entry['version']
-                    embed = discord.Embed(title='Beta update available!', color=discord.Colour.gold())
-                    embed.add_field(name='New version: ', value=self.beta_version, inline=False)
-                    await self.sendEmbed(embed, title='Chromium Beta Channel')
-                if 'dev' in entry['name'] and entry['version'] != self.dev_version:
-                    self.dev_version = entry['version']
-                    embed = discord.Embed(title='Dev update available!', color=discord.Colour.red())
-                    embed.add_field(name='New version: ', value=self.dev_version, inline=False)
-                    await self.sendEmbed(embed, title='Chromium Dev Channel')
-                if 'canary' in entry['name'] and entry['version'] != self.canary_version:
-                    self.canary_version = entry['version']
-                    embed = discord.Embed(title='Canary update available!', color=discord.Colour.purple())
-                    embed.add_field(name='New version: ', value=self.canary_version, inline=False)
-                    await self.sendEmbed(embed, title='Chromium Canary Channel')
+            try:
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(self.fetch_url) as resp:
+                        data = await resp.json()
+                    await session.close()
+                for entry in data['releases']:
+                    if 'stable' in entry['name'] and entry['version'] != self.stable_version:
+                        self.stable_version = entry['version']
+                        embed = discord.Embed(title='Stable update available!', color=discord.Colour.green())
+                        embed.add_field(name='New version: ', value=self.stable_version, inline=False)
+                        await self.sendEmbed(embed, title='Chromium Stable Channel')
+                    if 'beta' in entry['name'] and entry['version'] != self.beta_version:
+                        self.beta_version = entry['version']
+                        embed = discord.Embed(title='Beta update available!', color=discord.Colour.gold())
+                        embed.add_field(name='New version: ', value=self.beta_version, inline=False)
+                        await self.sendEmbed(embed, title='Chromium Beta Channel')
+                    if 'dev' in entry['name'] and entry['version'] != self.dev_version:
+                        self.dev_version = entry['version']
+                        embed = discord.Embed(title='Dev update available!', color=discord.Colour.red())
+                        embed.add_field(name='New version: ', value=self.dev_version, inline=False)
+                        await self.sendEmbed(embed, title='Chromium Dev Channel')
+                    if 'canary' in entry['name'] and entry['version'] != self.canary_version:
+                        self.canary_version = entry['version']
+                        embed = discord.Embed(title='Canary update available!', color=discord.Colour.purple())
+                        embed.add_field(name='New version: ', value=self.canary_version, inline=False)
+                        await self.sendEmbed(embed, title='Chromium Canary Channel')
+            except Exception as e:
+                print('Error: ' + str(e) + '\nRetrying in 30 minutes...')
             await asyncio.sleep(1800)
 
     async def fetch_android(self):
